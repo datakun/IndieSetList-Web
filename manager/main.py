@@ -11,6 +11,9 @@ from db_controller import Video
 from db_controller import Event
 from db_controller import Performance
 
+# 데이터 삽입 후 result 값 해석
+# 0: 기본 상태, 1: 실패, -1: 성공, -2: 이미 삽입 됨
+
 app = Flask(__name__)
 
 @app.route('/')
@@ -31,37 +34,70 @@ def insert_perform():
     if venues_cookie is None:
         venues = db_controller.get_venue_list(is_object = False)
     else:
-        venues = [temp_str.strip() for temp_str in venues_cookie.split(',')]
+        venues = [temp_str.strip() for temp_str in venues_cookie.split('\n')]
 
     if artists_cookie is None:
         artists = db_controller.get_artist_list(is_object = False)
     else:
-        artists = [temp_str.strip() for temp_str in artists_cookie.split(',')]
-    
-    # 공연장, 음악가 정보를 template에 전달하기 위한 준비
-    resp = make_response(render_template('insert-perform.html', venue_list = venues, artist_list = artists))
-    resp.set_cookie('venues', ','.join(venues))
-    resp.set_cookie('artists', ','.join(artists))
+        artists = [temp_str.strip() for temp_str in artists_cookie.split('\n')]
+
+    # 연주 삽입 결과 변수
+    result = 0
 
     if request.method == 'POST':
+        # 공연 날짜
         date = request.form['date']
         date = date.strip()
+
+        # 공연장
         venue = request.form['venue']
-        venue = venue.strip()
-        venue_object = db_controller.get_venue_by_name(venue).to_simple_dict()
-        event_object = db_controller.get_event_by_date_venue_name(date, venue)
+        venue = venue.strip()  
+        venue_object = db_controller.get_venue_by_name(venue)
+        if venue_object is not None:
+            venue_object = venue_object.to_simple_dict()
 
-        if event_object is not None:
-            artist = request.form['artist']
-            artist = artist.strip()
-            artist_object = db_controller.get_artist_by_name(artist).to_simple_dict()
-            video_id = request.form['video-id']
-            title = request.form['title']
-            video = Video(video_id, title)
+            # 공연 정보
+            event_object = db_controller.get_event_by_date_venue_name(date, venue)
+            if event_object is not None:
+                # 음악가
+                artist = request.form['artist']
+                artist = artist.strip()
+                artist_object = db_controller.get_artist_by_name(artist)
+                if artist_object is not None:
+                    artist_object = artist_object.to_simple_dict()
 
-            perform = perform = Performance(u'', artist_object, date, event_object.id, venue_object, video.to_dict())
-            print(perform)
-            db_controller.insert_performance(perform)
+                    # 유튜브 영상 정보
+                    video_id = request.form['video-id']
+                    title = request.form['title']
+                    video = Video(video_id, title)
+
+                    # 연주 삽입
+                    perform = perform = Performance(u'', artist_object, date, event_object.id, venue_object, video.to_dict())
+                    db_result = db_controller.insert_performance(perform)
+                    if db_result is None:
+                        # 이미 삽입 됨
+                        result = -2
+                    elif hasattr(db_result, 'update_time') is False:
+                        # 삽입 실패
+                        result = 1
+                    else:
+                        result = -1
+                else:
+                    # 삽입 실패, 음악가 없음
+                    result = 1
+            else:
+                # 삽입 실패, 공연 정보 없음
+                result = 1
+        else:
+            # 삽입 실패, 공연장 없음
+            result = 1
+    
+    # 공연장, 음악가 정보를 template에 전달하기 위한 준비
+    expire_date = datetime.datetime.now()
+    expire_date = expire_date + datetime.timedelta(days=1)
+    resp = make_response(render_template('insert-perform.html', venue_list = venues, artist_list = artists, result = result))
+    resp.set_cookie('venues', '\n'.join(venues), expires=expire_date)
+    resp.set_cookie('artists', '\n'.join(artists), expires=expire_date)
 
     return resp
 
@@ -72,20 +108,33 @@ def insert_artist():
     if artists_cookie is None:
         artists = db_controller.get_artist_list(is_object = False)
     else:
-        artists = [temp_str.strip() for temp_str in artists_cookie.split(',')]
-        
-    resp = make_response(render_template('insert-artist.html'))
+        artists = [temp_str.strip() for temp_str in artists_cookie.split('\n')]
+
+    result = 0
 
     # POST 로 실행 시, 음악가 삽입
     if request.method == 'POST':
         artist = request.form['artist']
         artist = artist.strip()
 
-        db_controller.insert_artist(artist)
+        db_result = db_controller.insert_artist(artist)
 
-        artists.append(artist)
+        if db_result is None:
+            # 이미 삽입 됨
+            result = -2
+        elif hasattr(db_result, 'update_time') is False:
+            # 삽입 실패
+            result = 1
+        else:
+            result = -1
+
+        if result < 1:
+            artists.append(artist)
         
-        resp.set_cookie('artists', ','.join(artists))
+    expire_date = datetime.datetime.now()
+    expire_date = expire_date + datetime.timedelta(days=1)
+    resp = make_response(render_template('insert-artist.html', result = result))
+    resp.set_cookie('artists', '\n'.join(artists), expires=expire_date)
 
     return resp
 
@@ -96,20 +145,33 @@ def insert_venue():
     if venues_cookie is None:
         venues = db_controller.get_venue_list(is_object = False)
     else:
-        venues = [temp_str.strip() for temp_str in venues_cookie.split(',')]
-        
-    resp = make_response(render_template('insert-venue.html'))
+        venues = [temp_str.strip() for temp_str in venues_cookie.split('\n')]
+
+    result = 0
 
     # POST 로 실행 시, 공연장 삽입
     if request.method == 'POST':
         venue = request.form['venue']
         venue = venue.strip()
 
-        db_controller.insert_venue(venue)
+        db_result = db_controller.insert_venue(venue)
 
-        venues.append(venue)
+        if db_result is None:
+            # 이미 삽입 됨
+            result = -2
+        elif hasattr(db_result, 'update_time') is False:
+            # 삽입 실패
+            result = 1
+        else:
+            result = -1
+
+        if result < 1:
+            venues.append(venue)
         
-        resp.set_cookie('venues', ','.join(venues))
+    expire_date = datetime.datetime.now()
+    expire_date = expire_date + datetime.timedelta(days=1)
+    resp = make_response(render_template('insert-venue.html', result = result))
+    resp.set_cookie('venues', '\n'.join(venues), expires=expire_date)
 
     return resp
 
@@ -126,36 +188,55 @@ def insert_event():
     if venues_cookie is None:
         venues = db_controller.get_venue_list(is_object = False)
     else:
-        venues = [temp_str.strip() for temp_str in venues_cookie.split(',')]
+        venues = [temp_str.strip() for temp_str in venues_cookie.split('\n')]
 
     if artists_cookie is None:
         artists = db_controller.get_artist_list(is_object = False)
     else:
-        artists = [temp_str.strip() for temp_str in artists_cookie.split(',')]
-    
-    # 공연장, 음악가 정보를 template에 전달하기 위한 준비
-    resp = make_response(render_template('insert-event.html', venue_list = venues, artist_list = artists))
-    resp.set_cookie('venues', ','.join(venues))
-    resp.set_cookie('artists', ','.join(artists))
+        artists = [temp_str.strip() for temp_str in artists_cookie.split('\n')]
+
+    result = 0
 
     # POST 로 실행 시, 공연 삽입
     if request.method == 'POST':
+        # 공연 날짜
         date = request.form['date']
         date = date.strip()
+
+        # 공연장
         venue = request.form['venue']
-        venue = venue.strip()
-        venue_object = db_controller.get_venue_by_name(venue).to_simple_dict()
-        artist_list_string = request.form['artist-list']
-        artist_list_string = artist_list_string.strip()
-        artist_list = []
+        venue = venue.strip()  
+        venue_object = db_controller.get_venue_by_name(venue)
+        if venue_object is not None:
+            venue_object = venue_object.to_simple_dict()
+        
+            artist_list_string = request.form['artist-list']
+            artist_list_string = artist_list_string.strip()
+            artist_list = []
 
-        for artist in list(filter(None, [temp_str.strip() for temp_str in artist_list_string.split(',')])):
-            artist_object = db_controller.get_artist_by_name(artist)
-            artist_list.append(artist_object.to_simple_dict())
+            for artist in list(filter(None, [temp_str.strip() for temp_str in artist_list_string.split('\n')])):
+                artist_object = db_controller.get_artist_by_name(artist)
+                artist_list.append(artist_object.to_simple_dict())
 
-        event = Event(u'', date, venue_object, artist_list)
+            event = Event(u'', date, venue_object, artist_list)
 
-        db_controller.update_or_insert_event(event)
+            db_result = db_controller.update_or_insert_event(event)
+
+            if db_result is None or hasattr(db_result, 'update_time') is False:
+                # 삽입 실패
+                result = 1
+            else:
+                result = -1
+        else:
+            # 삽입 실패, 공연장 없음
+            result = 1
+    
+    # 공연장, 음악가 정보를 template에 전달하기 위한 준비
+    expire_date = datetime.datetime.now()
+    expire_date = expire_date + datetime.timedelta(days=1)
+    resp = make_response(render_template('insert-event.html', venue_list = venues, artist_list = artists, result = result))
+    resp.set_cookie('venues', '\n'.join(venues), expires=expire_date)
+    resp.set_cookie('artists', '\n'.join(artists), expires=expire_date)
 
     return resp
 

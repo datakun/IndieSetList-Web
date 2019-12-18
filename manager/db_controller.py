@@ -336,11 +336,9 @@ def insert_event(event):
         db_ref = db.collection(u'events').document()
         event.id = db_ref.id
 
-        db_ref.set(event.to_dict())
+        return db_ref.set(event.to_dict())
 
-        return event
-
-    return event_item
+    return None
 
 def update_event(event):
     item = get_event_by_id(event.id)
@@ -360,14 +358,9 @@ def update_or_insert_event(event):
         db_ref = db.collection(u'events').document()
         event.id = db_ref.id
 
-        db_ref.set(event.to_dict())
-
-        return event
+        return db_ref.set(event.to_dict())
     else:
-        if update_event(event) is None:
-            return None
-
-    return event_item
+        return update_event(event)
 
 def delete_event(event):
     db_ref = db.collection(u'events')
@@ -408,15 +401,14 @@ def get_artist_list(is_object = True):
 
 def insert_artist(artist_name):
     artist = get_artist_by_name(artist_name)
+
     if artist is None:
         db_ref = db.collection(u'artists').document()
         artist = Artist(db_ref.id, artist_name)
 
-        db_ref.set(artist.to_dict())
+        return db_ref.set(artist.to_dict())
 
-        return artist
-    else:
-        return artist
+    return None
 
 def update_artist(artist):
     item = get_artist_by_id(artist.id)
@@ -468,15 +460,14 @@ def get_venue_list(is_object = True):
 
 def insert_venue(venue_name):
     venue = get_venue_by_name(venue_name)
+
     if venue is None:
         db_ref = db.collection(u'venues').document()
         venue = Venue(db_ref.id, venue_name)
 
-        db_ref.set(venue.to_dict())
+        return db_ref.set(venue.to_dict())
 
-        return venue
-    else:
-        return venue
+    return None
 
 def update_venue(venue):
     item = get_venue_by_id(venue.id)
@@ -558,11 +549,9 @@ def insert_performance(perform):
         db_ref = db.collection(u'performance').document()
         perform.id = db_ref.id
 
-        db_ref.set(perform.to_dict())
+        return db_ref.set(perform.to_dict())
 
-        return perform
-
-    return perform_item
+    return None
 
 def update_performance(perform):
     item = get_performance_by_id(perform.id)

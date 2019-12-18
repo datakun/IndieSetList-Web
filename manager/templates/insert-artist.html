@@ -7,8 +7,14 @@
     <title>영상 관리 페이지</title>
 
     <link href="../static/bootstrap-4.2.1-dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../static/css/page-default.css" rel="stylesheet">
+
+    <script src="../static/js/jquery-3.4.1.min.js"></script>
+    <script src="../static/bootstrap-4.2.1-dist/js/bootstrap.min.js"></script>
+    <script src="../static/js/alert-showing.js"></script>
 
     <script type="text/javascript">
+        var insertResult = {{ result| safe }};
 
         function signOut() {
             firebase.auth().signOut();
@@ -22,6 +28,14 @@
             });
 
             document.getElementById('btn-sign-out').addEventListener('click', signOut, false);
+
+            if (insertResult === -1) {
+                showSuccessAlert('새로운 음악가를 추가했습니다.');
+            } else if (insertResult === -2) {
+                showWarningAlert('이미 추가된 음악가입니다.');
+            } else if (insertResult === 1) {
+                showDangerAlert('음악가를 추가하지 못했습니다.');
+            }
         }
 
         window.onload = function () {
@@ -56,7 +70,7 @@
         </div>
     </nav>
 
-    <main role="main" class="container w-50">
+    <main role="main" class="container w-50" id="main-container">
         <div>
             <form id="form-details" action="/insert-artist" method="post" autocomplete="off">
                 <div class="form-group">
@@ -68,7 +82,6 @@
                 </div>
             </form>
         </div>
-
     </main>
 
     <!-- Firebase App (the core Firebase SDK) is always required and must be listed first -->
