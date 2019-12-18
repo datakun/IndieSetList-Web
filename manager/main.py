@@ -214,7 +214,7 @@ def insert_event():
             artist_list_string = artist_list_string.strip()
             artist_list = []
 
-            for artist in list(filter(None, [temp_str.strip() for temp_str in artist_list_string.split('\n')])):
+            for artist in list(filter(None, [temp_str.strip() for temp_str in artist_list_string.split(',')])):
                 artist_object = db_controller.get_artist_by_name(artist)
                 artist_list.append(artist_object.to_simple_dict())
 
@@ -249,4 +249,4 @@ if __name__ == '__main__':
     # static auto reload
     # app.jinja_env.auto_reload = True
     # app.config['TEMPLATES_AUTO_RELOAD'] = True
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=False)
