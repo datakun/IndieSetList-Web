@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="ko">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
+    <meta name="generator" content="Jekyll v3.8.5">
+    <title>IndieSetList 관리 페이지</title>
+
+    <link href="../static/bootstrap-4.2.1-dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../static/css/sign-in.css" rel="stylesheet">
+
+    <script type="text/javascript">
+
+        function signIn() {
+            if (firebase.auth().currentUser) {
+                firebase.auth().signOut();
+            }
+
+            var email = document.getElementById('inputEmail').value;
+            var password = document.getElementById('inputPassword').value;
+            if (email.length < 4) {
+                alert('올바른 이메일 주소를 입력하세요.');
+
+                return;
+            }
+            if (password.length < 1) {
+                alert('비밀번호를 입력하세요.');
+
+                return;
+            }
+
+            firebase.auth().signInWithEmailAndPassword(email, password).catch(function (error) {
+                var errorCode = error.code;
+                var errorMessage = error.message;
+                if (errorCode === 'auth/wrong-password') {
+                    alert('비밀번호를 잘못 입력했습니다.');
+                } else {
+                    alert(errorMessage);
+                }
+
+                console.log(error);
+            });
+        }
+
+        function initApp() {
+            firebase.auth().onAuthStateChanged(function (user) {
+                if (user) {
+                    window.location.href = '/insert-perform';
+                } else {
+                    document.getElementById('btn-sign-in').disabled = false;
+                }
+            });
+            
+            document.getElementById('btn-sign-in').addEventListener('click', signIn, false);
+        }
+
+        window.onload = function () {
+            initApp();
+        };
+    </script>
+</head>
+
+<body class="text-center">
+    <form class="form-sign-in" action="javascript:signIn()">
+        <h1 class="h3 mb-3 font-weight-normal">IndieSetList 관리자</h1>
+        <label for="inputEmail" class="sr-only">이메일 주소</label>
+        <input type="email" id="inputEmail" class="form-control" placeholder="이메일 주소" required autofocus>
+        <label for="inputPassword" class="sr-only">비밀번호</label>
+        <input type="password" id="inputPassword" class="form-control" placeholder="비밀번호" required>
+        <button disabled class="btn btn-lg btn-primary btn-block" id="btn-sign-in">로그인</button>
+    </form>
+
+    <!-- Firebase App (the core Firebase SDK) is always required and must be listed first -->
+    <script src="https://www.gstatic.com/firebasejs/6.2.0/firebase-app.js"></script>
+
+    <!-- Add Firebase products that you want to use -->
+    <script src="https://www.gstatic.com/firebasejs/6.2.0/firebase-auth.js"></script>
+
+    <script src="../static/js/developer.js"></script>
+</body>
+
+</html>

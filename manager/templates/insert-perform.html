@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="ko">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>영상 관리 페이지</title>
+
+    <link href="../static/bootstrap-4.2.1-dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" rel="stylesheet">
+    <link href="../static/bootstrap-datepicker/css/bootstrap-datepicker.min.css" rel="stylesheet">
+
+    <script src="../static/js/jquery-3.4.1.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script src="../static/bootstrap-datepicker/js/bootstrap-datepicker.min.js"></script>
+    <script src="../static/bootstrap-datepicker/locales/bootstrap-datepicker.ko.min.js"></script>
+
+    <script>
+        $(function () {
+            $('#date').datepicker({
+                format: 'yyyy-mm-dd',
+                autoclose: true,
+                disableTouchKeyboard: false,
+                immediateUpdates: false,
+                showWeekDays: true,
+                title: '공연 날짜',
+                language: 'ko'
+            });
+        });
+    </script>
+
+    <script type="text/javascript">
+
+        //<![CDATA[
+        var venues = [];
+        var filtered_venues = [];
+        var artists = [];
+
+        function signOut() {
+            firebase.auth().signOut();
+        }
+
+        function makeVenueList(item_list) {
+            venues = item_list;
+        }
+
+        function makeArtistList(item_list) {
+            artists = item_list;
+        }
+
+        function signOut() {
+            firebase.auth().signOut();
+        }
+
+        function analysisVideoIdByEnter() {
+            if (event.keyCode === 13)
+                analysisVideoId();
+        }
+
+        function analysisVideoId() {
+            // YouTube 주소 or Video Id 가져오기
+            var youtubeUrl = document.getElementById('youtube-url').value;
+
+            // 크기가 0 이상이면 분석.
+            // 음악가, 공연 날짜, 공연장 이름을 영상 제목에서 찾음
+            if (youtubeUrl.length > 0) {
+                document.getElementById('form-details').style.display = 'block';
+
+                document.getElementById('head-title').innerHTML = '';
+                document.getElementById('description').innerHTML = '';
+
+                var videoId = '';
+                var embedUrl = 'https://www.youtube.com/embed/';
+
+                // 전체 주소일 경우
+                if (youtubeUrl.startsWith('https://www.youtube.com/watch?v=') || youtubeUrl.startsWith('www.youtube.com/watch?v=')) {
+                    var tempStrings = youtubeUrl.split('watch?v=');
+                    if (tempStrings[1].length > 0) {
+                        var tempStringsIn = tempStrings[1].split('&');
+                        videoId = tempStringsIn[0];
+
+                        document.getElementById('embed-video').setAttribute('src', embedUrl + videoId);
+                    } else {
+                        alert('비디오 아이디가 올바르지 않습니다.')
+                    }
+                } else {
+                    videoId = youtubeUrl;
+
+                    document.getElementById('embed-video').setAttribute('src', embedUrl + videoId);
+                }
+
+                if (videoId !== '') {
+                    document.getElementById('video-id').value = videoId;
+
+                    var requestUrl = 'https://www.googleapis.com/youtube/v3/videos?part=snippet&id=';
+                    requestUrl += videoId;
+                    requestUrl += '&fields=items/snippet/title,items/snippet/description&key=';
+                    requestUrl += firebaseConfig.apiKey;
+
+                    // XMLHttpRequest 객체의 생성
+                    const xhr = new XMLHttpRequest();
+                    // 비동기 방식으로 Request를 오픈한다
+                    xhr.open('GET', requestUrl);
+                    // Request를 전송한다
+                    xhr.send();
+
+                    xhr.onreadystatechange = function (e) {
+                        // readyStates는 XMLHttpRequest의 상태(state)를 반환
+                        // readyState: 4 => DONE(서버 응답 완료)
+                        if (xhr.readyState !== XMLHttpRequest.DONE) return;
+
+                        // status는 response 상태 코드를 반환 : 200 => 정상 응답
+                        if (xhr.status === 200) {
+                            var responseObject = JSON.parse(xhr.responseText);
+                            if (responseObject.items.length > 0) {
+                                document.getElementById('head-title').innerHTML = responseObject.items[0].snippet.title;
+                                document.getElementById('description').innerHTML = responseObject.items[0].snippet.description;
+                                document.getElementById('title').value = responseObject.items[0].snippet.title;
+                            }
+                        } else {
+                            console.log('Error!');
+                        }
+                    };
+                }
+            }
+        }
+
+        function initApp() {
+            firebase.auth().onAuthStateChanged(function (user) {
+                if (user === null) {
+                    window.location.href = '/';
+                }
+            });
+
+            document.getElementById('btn-sign-out').addEventListener('click', signOut, false);
+            document.getElementById('btn-analysis').addEventListener('click', analysisVideoId, false);
+        }
+
+        window.onload = function () {
+            initApp();
+        };
+
+        makeVenueList({{ venue_list| safe }});
+
+        makeArtistList({{ artist_list| safe }});
+
+        $(function () {
+            $('#venue').autocomplete({
+                source: venues,
+                focus: function () {
+                    return false;
+                }
+            });
+        });
+        
+        $(function () {
+            $('#artist').autocomplete({
+                source: artists,
+                focus: function () {
+                    return false;
+                }
+            });
+        });
+        //]]>
+    </script>
+
+    <script src="https://apis.google.com/js/api.js"></script>
+    <script src="../static/js/gapi-config.js"></script>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
+        <a class="navbar-brand" href="#">영상 관리 페이지</a>
+
+        <div class="collapse navbar-collapse" id="navbarsExampleDefault">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="/insert-perform">새로운 연주</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/insert-event">새로운 공연</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/insert-artist">새로운 음악가</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/insert-venue">새로운 공연장</a>
+                </li>
+            </ul>
+            <button class="btn btn-danger my-2 my-sm-0" id="btn-sign-out">로그아웃</button>
+        </div>
+    </nav>
+
+    <main role="main" class="container w-50">
+        <div class="form-insert-perform">
+            <div class="form-group">
+                <div class="embed-responsive embed-responsive-16by9">
+                    <iframe class="embed-responsive-item" id="embed-video" src=""></iframe>
+                </div>
+                <label>YouTube 주소</label>
+                <input class="form-control" type="text" id="youtube-url" name="youtube-url" required
+                    placeholder="YouTube 주소 혹은 videoId" autofocus autocomplete="off" onkeydown="javascript:analysisVideoIdByEnter();">
+            </div>
+            <div class="form-group">
+                <button class="btn btn-secondary my-4 my-sm-0" id="btn-analysis">분석하기</button>
+            </div>
+            <form id="form-details" style="display: none;" action="/insert-perform" method="post" autocomplete="off">
+                <div class="video-description">
+                    <h2 id="head-title">Title</h2>
+                    <p id="description" class="lead">Description</p>
+                </div>
+                <div class="form-group">
+                    <label>음악가</label>
+                    <input class="form-control" type="text" id="artist" name="artist" required placeholder="음악가 이름">
+                </div>
+                <div class="form-group">
+                    <label>공연 날짜</label>
+                    <input class="form-control" type="text" id="date" name="date" required placeholder="공연 날짜">
+                </div>
+                <div class="form-group">
+                    <label>공연장</label>
+                    <input class="form-control" type="text" id="venue" name="venue" required placeholder="공연장 이름">
+                </div>
+                <div class="form-group">
+                    <button class="btn btn-primary my-2 my-sm-0" id="btn-insert-perform">추가하기</button>
+                </div>
+                <input type="hidden" id="video-id" name="video-id" value="">
+                <input type="hidden" id="title" name="title" value="">
+            </form>
+        </div>
+
+    </main>
+
+    <!-- Firebase App (the core Firebase SDK) is always required and must be listed first -->
+    <script src="https://www.gstatic.com/firebasejs/6.2.0/firebase-app.js"></script>
+
+    <!-- Add Firebase products that you want to use -->
+    <script src="https://www.gstatic.com/firebasejs/6.2.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/6.2.0/firebase-firestore.js"></script>
+
+    <script src="../static/js/developer.js"></script>
+</body>
+
+</html>
