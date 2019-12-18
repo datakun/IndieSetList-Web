@@ -16,7 +16,6 @@
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
     <script src="../static/bootstrap-datepicker/js/bootstrap-datepicker.min.js"></script>
     <script src="../static/bootstrap-datepicker/locales/bootstrap-datepicker.ko.min.js"></script>
-    <script src="../static/js/alert-showing.js"></script>
 
     <script>
         $(function () {
@@ -60,10 +59,15 @@
 
             document.getElementById('btn-sign-out').addEventListener('click', signOut, false);
 
+            var toastElement = document.getElementById('toast-body');
             if (insertResult === -1) {
-                showSuccessAlert('새로운 공연 정보를 추가했습니다.');
+                toastElement.classList.add('bg-success');
+                toastElement.innerHTML = '새로운 공연 정보를 추가했습니다.';
+                $('.toast').toast('show');
             } else if (insertResult === 1) {
-                showDangerAlert('공연 정보를 추가하지 못했습니다.');
+                toastElement.classList.add('bg-danger');
+                toastElement.innerHTML = '공연 정보를 추가하지 못했습니다.';
+                $('.toast').toast('show');
             }
         }
 
@@ -175,7 +179,10 @@
                 </div>
             </form>
         </div>
-
+        <div class="toast" data-delay="5000">
+            <div class="toast-body text-white" id="toast-body">
+            </div>
+        </div>
     </main>
 
     <!-- Firebase App (the core Firebase SDK) is always required and must be listed first -->

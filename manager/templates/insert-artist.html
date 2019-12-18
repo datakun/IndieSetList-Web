@@ -11,7 +11,6 @@
 
     <script src="../static/js/jquery-3.4.1.min.js"></script>
     <script src="../static/bootstrap-4.2.1-dist/js/bootstrap.min.js"></script>
-    <script src="../static/js/alert-showing.js"></script>
 
     <script type="text/javascript">
         var insertResult = {{ result| safe }};
@@ -29,12 +28,19 @@
 
             document.getElementById('btn-sign-out').addEventListener('click', signOut, false);
 
+            var toastElement = document.getElementById('toast-body');
             if (insertResult === -1) {
-                showSuccessAlert('새로운 음악가를 추가했습니다.');
+                toastElement.classList.add('bg-success');
+                toastElement.innerHTML = '새로운 음악가를 추가했습니다.';
+                $('.toast').toast('show');
             } else if (insertResult === -2) {
-                showWarningAlert('이미 추가된 음악가입니다.');
+                toastElement.classList.add('bg-info');
+                toastElement.innerHTML = '이미 추가된 음악가입니다.';
+                $('.toast').toast('show');
             } else if (insertResult === 1) {
-                showDangerAlert('음악가를 추가하지 못했습니다.');
+                toastElement.classList.add('bg-danger');
+                toastElement.innerHTML = '음악가를 추가하지 못했습니다.';
+                $('.toast').toast('show');
             }
         }
 
@@ -81,6 +87,10 @@
                     <button class="btn btn-primary my-2 my-sm-0" id="btn-insert-perform">추가하기</button>
                 </div>
             </form>
+        </div>
+        <div class="toast" data-delay="5000">
+            <div class="toast-body text-white" id="toast-body">
+            </div>
         </div>
     </main>
 
