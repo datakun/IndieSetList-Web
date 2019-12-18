@@ -37,6 +37,7 @@
         var insertResult = {{ result| safe }};
         var venues = [];
         var artists = [];
+        var ctrlDown = false;
 
         function signOut() {
             firebase.auth().signOut();
@@ -50,8 +51,28 @@
             artists = item_list;
         }
 
-        function signOut() {
-            firebase.auth().signOut();
+        $(document).keydown(function(event) {
+            if (event.keyCode === 17 || event.keyCode === 91) {
+                ctrlDown = true;
+            }
+        }).keyup(function(event) {
+            if (event.keyCode === 17 || event.keyCode === 91) {
+                ctrlDown = false;
+            }
+        });
+
+        function trimArtistValue() {
+            if (ctrlDown === true && event.keyCode === 86) {
+                var value = $('#artist').val().trim();
+                $('#artist').val(value);
+            }
+        }
+
+        function trimVenueValue() {
+            if (ctrlDown === true && event.keyCode === 86) {
+                var value = $('#venue').val().trim();
+                $('#venue').val(value);
+            }
         }
 
         function analysisVideoIdByEnter() {
@@ -60,8 +81,6 @@
         }
 
         function analysisVideoId() {
-            $('.alert').alert('close');
-
             // YouTube 주소 or Video Id 가져오기
             var youtubeUrl = document.getElementById('youtube-url').value;
 
@@ -130,6 +149,8 @@
         }
 
         function initApp() {
+            ctrlDown = false;
+            
             firebase.auth().onAuthStateChanged(function (user) {
                 if (user === null) {
                     window.location.href = '/';
@@ -225,11 +246,10 @@
     <main role="main" class="container w-50" id="main-container">
         <div class="form-insert-perform">
             <div class="form-group">
-                <div class="embed-responsive embed-responsive-16by9">
+                <div class="embed-responsive embed-responsive-16by9 w-50">
                     <iframe class="embed-responsive-item" id="embed-video" src=""></iframe>
                 </div>
-                <label>YouTube 주소</label>
-                <input class="form-control" type="text" id="youtube-url" name="youtube-url" required
+                <input class="form-control" type="text" id="youtube-url" name="youtube-url" autofocus required
                     placeholder="YouTube 주소 혹은 videoId" autofocus autocomplete="off" onkeydown="javascript:analysisVideoIdByEnter();">
             </div>
             <div class="form-group">
@@ -242,7 +262,7 @@
                 </div>
                 <div class="form-group">
                     <label>음악가</label>
-                    <input class="form-control" type="text" id="artist" name="artist" required placeholder="음악가 이름">
+                    <input class="form-control" type="text" id="artist" name="artist" required placeholder="음악가 이름" onkeyup="javascript:trimArtistValue();">
                 </div>
                 <div class="form-group">
                     <label>공연 날짜</label>
@@ -250,7 +270,7 @@
                 </div>
                 <div class="form-group">
                     <label>공연장</label>
-                    <input class="form-control" type="text" id="venue" name="venue" required placeholder="공연장 이름">
+                    <input class="form-control" type="text" id="venue" name="venue" required placeholder="공연장 이름" onkeyup="javascript:trimVenueValue();">
                 </div>
                 <div class="form-group">
                     <button class="btn btn-primary my-2 my-sm-0" id="btn-insert-perform">추가하기</button>

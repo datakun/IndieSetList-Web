@@ -345,7 +345,7 @@ def update_event(event):
 
     if item is not None:
         db_ref = db.collection(u'events').document(event.id)
-        event['updated_at'] = firestore.SERVER_TIMESTAMP
+        event.updated_at = firestore.SERVER_TIMESTAMP
 
         return db_ref.update(event.to_dict())
 
@@ -360,6 +360,8 @@ def update_or_insert_event(event):
 
         return db_ref.set(event.to_dict())
     else:
+        event.id = event_item.id
+
         return update_event(event)
 
 def delete_event(event):
@@ -415,7 +417,7 @@ def update_artist(artist):
 
     if item is not None:
         db_ref = db.collection(u'artists').document(artist.id)
-        artist['updated_at'] = firestore.SERVER_TIMESTAMP
+        artist.updated_at = firestore.SERVER_TIMESTAMP
 
         return db_ref.update(artist.to_dict())
 
@@ -474,7 +476,7 @@ def update_venue(venue):
 
     if item is not None:
         db_ref = db.collection(u'venues').document(venue.id)
-        venue['updated_at'] = firestore.SERVER_TIMESTAMP
+        venue.updated_at = firestore.SERVER_TIMESTAMP
 
         return db_ref.update(venue.to_dict())
 
@@ -558,7 +560,7 @@ def update_performance(perform):
 
     if item is not None:
         db_ref = db.collection(u'performance').document(perform.id)
-        perform['updated_at'] = firestore.SERVER_TIMESTAMP
+        perform.updated_at = firestore.SERVER_TIMESTAMP
 
         return db_ref.update(perform.to_dict())
 
