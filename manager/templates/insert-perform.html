@@ -11,9 +11,9 @@
     <link href="../static/bootstrap-datepicker/css/bootstrap-datepicker.min.css" rel="stylesheet">
     <link href="../static/css/page-default.css" rel="stylesheet">
 
-    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
     <script src="../static/js/jquery-3.4.1.min.js"></script>
     <script src="../static/bootstrap-4.2.1-dist/js/bootstrap.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
     <script src="../static/bootstrap-datepicker/js/bootstrap-datepicker.min.js"></script>
     <script src="../static/bootstrap-datepicker/locales/bootstrap-datepicker.ko.min.js"></script>
     <script src="../static/js/alert-showing.js"></script>
@@ -37,7 +37,6 @@
         //<![CDATA[
         var insertResult = {{ result| safe }};
         var venues = [];
-        var filtered_venues = [];
         var artists = [];
 
         function signOut() {
@@ -62,6 +61,8 @@
         }
 
         function analysisVideoId() {
+            $('.alert').alert('close');
+            
             // YouTube 주소 or Video Id 가져오기
             var youtubeUrl = document.getElementById('youtube-url').value;
 
@@ -136,9 +137,6 @@
                 }
             });
 
-            document.getElementById('btn-sign-out').addEventListener('click', signOut, false);
-            document.getElementById('btn-analysis').addEventListener('click', analysisVideoId, false);
-
             if (insertResult === -1) {
                 showSuccessAlert('새로운 영상을 추가했습니다.');
             } else if (insertResult === -2) {
@@ -146,6 +144,9 @@
             } else if (insertResult === 1) {
                 showDangerAlert('영상을 추가하지 못했습니다.');
             }
+
+            document.getElementById('btn-sign-out').addEventListener('click', signOut, false);
+            document.getElementById('btn-analysis').addEventListener('click', analysisVideoId, false);
         }
 
         window.onload = function () {
