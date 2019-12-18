@@ -12,7 +12,9 @@ from db_controller import Event
 from db_controller import Performance
 
 # 데이터 삽입 후 result 값 해석
-# 0: 기본 상태, 1: 실패, -1: 성공, -2: 이미 삽입 됨
+# 0: 기본 상태
+# -1: 성공, -2: 이미 삽입 됨
+# 1: 실패, 2: 공연장 없음, 3: 공연 정보 없음, 4: 음악가 없음
 
 app = Flask(__name__)
 
@@ -84,13 +86,13 @@ def insert_perform():
                         result = -1
                 else:
                     # 삽입 실패, 음악가 없음
-                    result = 1
+                    result = 4
             else:
                 # 삽입 실패, 공연 정보 없음
-                result = 1
+                result = 3
         else:
             # 삽입 실패, 공연장 없음
-            result = 1
+            result = 2
     
     # 공연장, 음악가 정보를 template에 전달하기 위한 준비
     expire_date = datetime.datetime.now()
@@ -128,12 +130,12 @@ def insert_artist():
         else:
             result = -1
 
-        if result < 1:
+        if result < 1 and not(artist in artists):
             artists.append(artist)
         
     expire_date = datetime.datetime.now()
     expire_date = expire_date + datetime.timedelta(days=1)
-    resp = make_response(render_template('insert-artist.html', result = result))
+    resp = make_response(render_template('insert-artist.html', artist_list = artists, result = result))
     resp.set_cookie('artists', '\n'.join(artists), expires=expire_date)
 
     return resp
@@ -165,12 +167,12 @@ def insert_venue():
         else:
             result = -1
 
-        if result < 1:
+        if result < 1 and not(venue in venues):
             venues.append(venue)
         
     expire_date = datetime.datetime.now()
     expire_date = expire_date + datetime.timedelta(days=1)
-    resp = make_response(render_template('insert-venue.html', result = result))
+    resp = make_response(render_template('insert-venue.html', venue_list = venues, result = result))
     resp.set_cookie('venues', '\n'.join(venues), expires=expire_date)
 
     return resp
@@ -229,7 +231,7 @@ def insert_event():
                 result = -1
         else:
             # 삽입 실패, 공연장 없음
-            result = 1
+            result = 2
     
     # 공연장, 음악가 정보를 template에 전달하기 위한 준비
     expire_date = datetime.datetime.now()
@@ -249,4 +251,4 @@ if __name__ == '__main__':
     # static auto reload
     # app.jinja_env.auto_reload = True
     # app.config['TEMPLATES_AUTO_RELOAD'] = True
-    app.run(host='0.0.0.0', port=5000, debug=False)
+    app.run(host='0.0.0.0', port=5000, debug=True)

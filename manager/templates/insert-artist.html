@@ -87,9 +87,18 @@
                     <button class="btn btn-primary my-2 my-sm-0" id="btn-insert-perform">추가하기</button>
                 </div>
             </form>
+            <div class="toast" data-delay="5000">
+                <div class="toast-body text-white" id="toast-body">
+                </div>
+            </div>
         </div>
-        <div class="toast" data-delay="5000">
-            <div class="toast-body text-white" id="toast-body">
+        <button class="btn btn-dark" type="button" data-toggle="collapse" data-target="#collapseArtist"
+            aria-expanded="false" aria-controls="collapseExample">
+            추가된 음악가 보기
+        </button>
+        <div class="collapse" id="collapseArtist">
+            <div class="card card-body">
+                {{ artist_list| safe }}
             </div>
         </div>
     </main>

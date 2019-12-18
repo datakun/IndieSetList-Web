@@ -8,7 +8,7 @@
 
     <link href="../static/bootstrap-4.2.1-dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="../static/css/page-default.css" rel="stylesheet">
-    
+
     <script src="../static/js/jquery-3.4.1.min.js"></script>
     <script src="../static/bootstrap-4.2.1-dist/js/bootstrap.min.js"></script>
 
@@ -87,9 +87,18 @@
                     <button class="btn btn-primary my-2 my-sm-0" id="btn-insert-perform">추가하기</button>
                 </div>
             </form>
+            <div class="toast" data-delay="5000">
+                <div class="toast-body text-white" id="toast-body">
+                </div>
+            </div>
         </div>
-        <div class="toast" data-delay="5000">
-            <div class="toast-body text-white" id="toast-body">
+        <button class="btn btn-dark" type="button" data-toggle="collapse" data-target="#collapseVenue"
+            aria-expanded="false" aria-controls="collapseExample">
+            추가된 공연장 보기
+        </button>
+        <div class="collapse" id="collapseVenue">
+            <div class="card card-body">
+                {{ venue_list| safe }}
             </div>
         </div>
     </main>

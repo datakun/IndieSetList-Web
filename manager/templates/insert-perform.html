@@ -149,6 +149,18 @@
                 toastElement.classList.add('bg-danger');
                 toastElement.innerHTML = '영상을 추가하지 못했습니다.';
                 $('.toast').toast('show');
+            } else if (insertResult === 2) {
+                toastElement.classList.add('bg-danger');
+                toastElement.innerHTML = '공연장 정보가 잘못되어 영상을 추가하지 못했습니다.';
+                $('.toast').toast('show');
+            } else if (insertResult === 3) {
+                toastElement.classList.add('bg-danger');
+                toastElement.innerHTML = '공연 정보가 잘못되어 영상을 추가하지 못했습니다.';
+                $('.toast').toast('show');
+            } else if (insertResult === 4) {
+                toastElement.classList.add('bg-danger');
+                toastElement.innerHTML = '음악가 정보가 잘못되어 영상을 추가하지 못했습니다.';
+                $('.toast').toast('show');
             }
 
             document.getElementById('btn-sign-out').addEventListener('click', signOut, false);
