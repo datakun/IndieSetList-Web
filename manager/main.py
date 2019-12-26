@@ -65,7 +65,7 @@ def insert_perform():
                 artist = request.form['artist']
                 artist = artist.strip()
                 artist_object = db_controller.get_artist_by_name(artist)
-                if artist_object is not None:
+                if (artist_object is not None) and (artist_object.to_simple_dict() in event_object.artists):
                     artist_object = artist_object.to_simple_dict()
 
                     # 유튜브 영상 정보
