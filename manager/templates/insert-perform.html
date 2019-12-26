@@ -139,6 +139,7 @@
 
                                 if (embeddable === true) {
                                     // 공연 영상 추가 가능할 때만 form 보여주기
+                                    document.getElementById('btn-insert-perform').disabled = false;
                                     document.getElementById('form-details').style.display = 'block';
 
                                     document.getElementById('head-title').innerHTML = responseObject.items[0].snippet.title;
@@ -146,6 +147,7 @@
                                     document.getElementById('title').value = responseObject.items[0].snippet.title;
                                 } else {
                                     // 업로더가 퍼가기 허락하지 않았을 경우 메시지 표시
+                                    document.getElementById('btn-insert-perform').disabled = true;
                                     document.getElementById('form-details').style.display = 'none';
 
                                     var toastElement = document.getElementById('toast-body');
@@ -287,7 +289,7 @@
                     <input class="form-control" type="text" id="venue" name="venue" required placeholder="공연장 이름" onkeyup="javascript:trimVenueValue();">
                 </div>
                 <div class="form-group">
-                    <button class="btn btn-primary my-2 my-sm-0" id="btn-insert-perform">추가하기</button>
+                    <button disabled class="btn btn-primary my-2 my-sm-0" id="btn-insert-perform">추가하기</button>
                 </div>
                 <input type="hidden" id="video-id" name="video-id" value="">
                 <input type="hidden" id="title" name="title" value="">
