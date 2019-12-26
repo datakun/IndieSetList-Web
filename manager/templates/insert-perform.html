@@ -87,8 +87,6 @@
             // 크기가 0 이상이면 분석.
             // 음악가, 공연 날짜, 공연장 이름을 영상 제목에서 찾음
             if (youtubeUrl.length > 0) {
-                document.getElementById('form-details').style.display = 'block';
-
                 document.getElementById('head-title').innerHTML = '';
                 document.getElementById('description').innerHTML = '';
 
@@ -115,9 +113,9 @@
                 if (videoId !== '') {
                     document.getElementById('video-id').value = videoId;
 
-                    var requestUrl = 'https://www.googleapis.com/youtube/v3/videos?part=snippet&id=';
+                    var requestUrl = 'https://www.googleapis.com/youtube/v3/videos?part=snippet,status&id=';
                     requestUrl += videoId;
-                    requestUrl += '&fields=items/snippet/title,items/snippet/description&key=';
+                    requestUrl += '&fields=items/snippet/title,items/snippet/description,items/status/embeddable&key=';
                     requestUrl += firebaseConfig.apiKey;
 
                     // XMLHttpRequest 객체의 생성
@@ -130,15 +128,31 @@
                     xhr.onreadystatechange = function (e) {
                         // readyStates는 XMLHttpRequest의 상태(state)를 반환
                         // readyState: 4 => DONE(서버 응답 완료)
-                        if (xhr.readyState !== XMLHttpRequest.DONE) return;
+                        if (xhr.readyState !== XMLHttpRequest.DONE)
+                            return;
 
                         // status는 response 상태 코드를 반환 : 200 => 정상 응답
                         if (xhr.status === 200) {
                             var responseObject = JSON.parse(xhr.responseText);
                             if (responseObject.items.length > 0) {
-                                document.getElementById('head-title').innerHTML = responseObject.items[0].snippet.title;
-                                document.getElementById('description').innerHTML = responseObject.items[0].snippet.description;
-                                document.getElementById('title').value = responseObject.items[0].snippet.title;
+                                var embeddable = responseObject.items[0].status.embeddable;
+
+                                if (embeddable === true) {
+                                    // 공연 영상 추가 가능할 때만 form 보여주기
+                                    document.getElementById('form-details').style.display = 'block';
+
+                                    document.getElementById('head-title').innerHTML = responseObject.items[0].snippet.title;
+                                    document.getElementById('description').innerHTML = responseObject.items[0].snippet.description;
+                                    document.getElementById('title').value = responseObject.items[0].snippet.title;
+                                } else {
+                                    // 업로더가 퍼가기 허락하지 않았을 경우 메시지 표시
+                                    document.getElementById('form-details').style.display = 'none';
+
+                                    var toastElement = document.getElementById('toast-body');
+                                    toastElement.classList.add('bg-danger');
+                                    toastElement.innerHTML = '업로더가 퍼가기를 허락하지 않았습니다.';
+                                    $('.toast').toast('show');
+                                }
                             }
                         } else {
                             console.log('Error!');
