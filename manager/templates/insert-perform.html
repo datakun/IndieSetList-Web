@@ -111,55 +111,76 @@
                 }
 
                 if (videoId !== '') {
-                    document.getElementById('video-id').value = videoId;
+                    // DB에 이미 해당 영상이 있는지 확인
+                    db.collection('performance').where('video.id', '==', videoId)
+                        .get()
+                        .then(function(querySnapshot) {
+                            var itemCount = querySnapshot.size;
+                            if (itemCount === 0) {
+                                // 이미 추가된 영상이 아닐 때만 작업 진행
+                                document.getElementById('video-id').value = videoId;
 
-                    var requestUrl = 'https://www.googleapis.com/youtube/v3/videos?part=snippet,status&id=';
-                    requestUrl += videoId;
-                    requestUrl += '&fields=items/snippet/title,items/snippet/description,items/status/embeddable&key=';
-                    requestUrl += firebaseConfig.apiKey;
+                                var requestUrl = 'https://www.googleapis.com/youtube/v3/videos?part=snippet,status&id=';
+                                requestUrl += videoId;
+                                requestUrl += '&fields=items/snippet/title,items/snippet/description,items/status/embeddable&key=';
+                                requestUrl += firebaseConfig.apiKey;
 
-                    // XMLHttpRequest 객체의 생성
-                    const xhr = new XMLHttpRequest();
-                    // 비동기 방식으로 Request를 오픈한다
-                    xhr.open('GET', requestUrl);
-                    // Request를 전송한다
-                    xhr.send();
+                                // XMLHttpRequest 객체의 생성
+                                const xhr = new XMLHttpRequest();
+                                // 비동기 방식으로 Request를 오픈
+                                xhr.open('GET', requestUrl);
+                                // Request를 전송
+                                xhr.send();
 
-                    xhr.onreadystatechange = function (e) {
-                        // readyStates는 XMLHttpRequest의 상태(state)를 반환
-                        // readyState: 4 => DONE(서버 응답 완료)
-                        if (xhr.readyState !== XMLHttpRequest.DONE)
-                            return;
+                                xhr.onreadystatechange = function (e) {
+                                    // readyStates는 XMLHttpRequest의 상태(state)를 반환
+                                    // readyState: 4 => DONE(서버 응답 완료)
+                                    if (xhr.readyState !== XMLHttpRequest.DONE)
+                                        return;
 
-                        // status는 response 상태 코드를 반환 : 200 => 정상 응답
-                        if (xhr.status === 200) {
-                            var responseObject = JSON.parse(xhr.responseText);
-                            if (responseObject.items.length > 0) {
-                                var embeddable = responseObject.items[0].status.embeddable;
+                                    // status는 response 상태 코드를 반환 : 200 => 정상 응답
+                                    if (xhr.status === 200) {
+                                        var responseObject = JSON.parse(xhr.responseText);
+                                        if (responseObject.items.length > 0) {
+                                            var embeddable = responseObject.items[0].status.embeddable;
 
-                                if (embeddable === true) {
-                                    // 공연 영상 추가 가능할 때만 form 보여주기
-                                    document.getElementById('btn-insert-perform').disabled = false;
-                                    document.getElementById('form-details').style.display = 'block';
+                                            if (embeddable === true) {
+                                                // 공연 영상 추가 가능할 때만 form 보여주기
+                                                document.getElementById('btn-insert-perform').disabled = false;
+                                                document.getElementById('form-details').style.display = 'block';
 
-                                    document.getElementById('head-title').innerHTML = responseObject.items[0].snippet.title;
-                                    document.getElementById('description').innerHTML = responseObject.items[0].snippet.description;
-                                    document.getElementById('title').value = responseObject.items[0].snippet.title;
-                                } else {
-                                    // 업로더가 퍼가기 허락하지 않았을 경우 메시지 표시
-                                    document.getElementById('btn-insert-perform').disabled = true;
-                                    document.getElementById('form-details').style.display = 'none';
+                                                document.getElementById('head-title').innerHTML = responseObject.items[0].snippet.title;
+                                                document.getElementById('description').innerHTML = responseObject.items[0].snippet.description;
+                                                document.getElementById('title').value = responseObject.items[0].snippet.title;
+                                            } else {
+                                                // 업로더가 퍼가기 허락하지 않았을 경우 메시지 표시
+                                                document.getElementById('btn-insert-perform').disabled = true;
+                                                document.getElementById('form-details').style.display = 'none';
 
-                                    var toastElement = document.getElementById('toast-body');
-                                    toastElement.classList.add('bg-danger');
-                                    toastElement.innerHTML = '업로더가 퍼가기를 허락하지 않았습니다.';
-                                    $('.toast').toast('show');
-                                }
+                                                var toastElement = document.getElementById('toast-body');
+                                                toastElement.classList.add('bg-danger');
+                                                toastElement.innerHTML = '업로더가 퍼가기를 허락하지 않았습니다.';
+                                                $('.toast').toast('show');
+                                            }
+                                        }
+                                    } else {
+                                        console.log('Error!');
+                                    }
+                                };
+                            } else {
+                                // 추가된 영상일 경우 메시지 표시
+                                document.getElementById('btn-insert-perform').disabled = true;
+                                document.getElementById('form-details').style.display = 'none';
+
+                                var toastElement = document.getElementById('toast-body');
+                                toastElement.classList.add('bg-info');
+                                toastElement.innerHTML = '이미 추가된 영상입니다.';
+                                $('.toast').toast('show');
                             }
-                        } else {
-                            console.log('Error!');
-                        }
-                    };
+                        })
+                        .catch(function(error) {
+                            console.log('Error getting documents: ', error);
+                        });
                 }
             }
         }

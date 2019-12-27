@@ -218,7 +218,8 @@ def insert_event():
 
             for artist in list(filter(None, [temp_str.strip() for temp_str in artist_list_string.split(',')])):
                 artist_object = db_controller.get_artist_by_name(artist)
-                artist_list.append(artist_object.to_simple_dict())
+                if artist_object is not None:
+                    artist_list.append(artist_object.to_simple_dict())
 
             event = Event(u'', date, venue_object, artist_list)
 
